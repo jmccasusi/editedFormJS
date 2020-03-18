@@ -1,62 +1,66 @@
-import React, { Component } from "react";
+import React, { Component } from 'react';
 import {
   Form,
   Button,
   FormControl,
   Row,
   Col,
-  InputGroup
-} from "react-bootstrap";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import axios from "axios";
+  InputGroup,
+} from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import axios from 'axios';
 //import Datepicker from "react-bootstrap-date-picker";
 // import ControlLabel from "react-bootstrap/InputGroup";
 // import FormCheck from "react-bootstrap/FormCheck";
 // import ControlLabel from "react-bootstrap/lib/ControlLabel";
+
 import { Redirect } from "react-router-dom";
 import { withRouter } from "react-router";
-import Submitted from "./SubmittedForm";
+// import ApplicantRecap from "./ApplicantRecap";
+
 
 class Forms extends Component {
   constructor() {
     super();
     this.state = {
-      // cohort_id: "", this needs to be type integer
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
-      state: "",
-      zip: "",
-      birth_date: "",
-      gender: "",
-      ethnicity: "",
-      linkedin: "",
-      github: "",
-      extra_link: "",
-      cover_letter: "",
-      highest_degree: "",
-      college_major: "",
-      college_location: "",
-      // is_employed: "", this needs to be type boolean
+      // cohort_id: ,
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      birth_date: '',
+      gender: '',
+      ethnicity: '',
+      linkedin: '',
+      github: '',
+      extra_link: '',
+      cover_letter: '',
+      highest_degree: '',
+      college_major: '',
+      college_location: '',
       is_employed: false,
-      employer: "",
-      // is_military: "", this needs to be type boolean
+      employer: '',
       is_military: false,
-      income: "",
-      // has_laptop: "", this needs to be type boolean
+      income: '',
       has_laptop: false,
-      why_interested: "",
-      how_heard: "",
-      skill_level: "",
-      app_status: "",
-      reviewer_comments: "",
-      // redirect: false, I'm not sure but, this might not be needed
+      why_interested: '',
+      how_heard: '',
+      skill_level: '',
+      app_status: '',
+      reviewer_comments: '',
+      redirect: false
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
+
+  componentDidMount() {
+    this.setState({ cohort_id: this.props.location.state.cohort_id });
+}
+
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
@@ -67,17 +71,28 @@ class Forms extends Component {
 
   async handleSubmit(event) {
     event.preventDefault();
-    // const applicantData = this.setState({ redirect: true });
     const applicantData = this.state;
-    console.log(applicantData)
 
-    const newData = await axios.post(
-      "http://localhost:3000/applications",
-      applicantData
-    );
+    delete applicantData.redirect;
+
+    // console.log(applicantData);
+    const newData = await axios
+      .post("http://localhost:3000/applications", applicantData)
+      .catch(err => {
+        console.log(err);
+        return null;
+      });
+
     console.log(newData.data);
-    this.props.history.push("/submitted");
-    return <Redirect to="/submitted" />;
+
+    // this.props.history.push("/recap");
+
+    console.log('id is: ' + newData.data.id);
+
+    this.setState({
+      redirect: true,
+      newId: newData.data.id
+    })
   }
 
   handleEthnicity = event => {
@@ -87,13 +102,12 @@ class Forms extends Component {
   handleDate = date => {
     // let dbFriendlyDate = date.toISOString();
     this.setState({
-      // birthdate: dbFriendlyDate, in the backend, it only accepts birth_date, not birthdate
-      birth_date: date
+      birth_date: date,
     });
   };
 
-  render() {
-    return (
+  mainBodyForm() {
+    return(
       <div>
         <h2>Application Form</h2>
         <Form onSubmit={this.handleSubmit}>
@@ -438,7 +452,23 @@ class Forms extends Component {
           </Button>
         </Form>
       </div>
-    );
+    )
+  }
+
+  render() {
+    if(this.state.redirect) {
+      return (
+        <Redirect
+          // to="/recap"
+          to={{
+            pathname: "/recap",
+            state: { id: this.state.newId }
+          }}
+        />
+      );
+    } else {
+      return this.mainBodyForm();
+    }
   }
 }
 export default withRouter(Forms);
